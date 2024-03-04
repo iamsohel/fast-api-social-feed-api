@@ -1,0 +1,8 @@
+alembic init alembic
+change alembic.ini file for sqlalchemy.url
+and change env model metadata
+alembic revision --autogenerate
+alembic revision -m "create account table
+alembic revision -m "Add a column"
+alembic upgrade head
+alembic downgrade base
