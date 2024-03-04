@@ -7,13 +7,14 @@ from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 
 
-from .service import create_user, get_user_by_email, get_users, get_user, get_password_hash, \
-    authenticate_user, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_active_user
-from .schemas import UserResponse, UserCreate, Token
+from .service import create_user, get_user_by_email, get_users, get_user, get_password_hash, get_posts, \
+    authenticate_user, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_active_user, create_user_post
+from .schemas import UserResponse, UserCreate, Token, Item, ItemCreate
 from app.database.core import get_db
 
 auth_router: APIRouter = APIRouter()
 user_router: APIRouter = APIRouter()
+post_router: APIRouter = APIRouter()
 
 
 @auth_router.post("/register", response_model=UserResponse)
@@ -91,6 +92,14 @@ async def read_users_me(current_user: UserResponse = Depends(get_current_active_
     return current_user
 
 
-@auth_router.get("/users/me/items/")
-async def read_own_items(current_user: UserResponse = Depends(get_current_active_user)):
-    return [{"item_id": "Foo", "owner": current_user.email}]
+@post_router.post("/users/{user_id}/posts/", response_model=Item)
+def create_item_for_user(
+    user_id: int, item: ItemCreate, db: Session = Depends(get_db)
+):
+    return create_user_post(db=db, item=item, user_id=user_id)
+
+
+@post_router.get("/posts/", response_model=list[Item])
+def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    items = get_posts(db, skip=skip, limit=limit)
+    return items

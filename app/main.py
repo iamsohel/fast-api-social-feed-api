@@ -11,6 +11,7 @@ from app.rate_limiter import limiter
 
 from app.auth import models
 from app.database.core import engine
+
 models.Base.metadata.create_all(bind=engine)
 
 

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from starlette.responses import JSONResponse
 from fastapi import APIRouter
 
-from app.auth.views import user_router, auth_router
+from app.auth.views import user_router, auth_router, post_router
 
 
 class ErrorMessage(BaseModel):
@@ -36,3 +36,5 @@ api_router.include_router(
     auth_router, prefix="/auth", tags=["auth"])
 api_router.include_router(
     user_router, tags=["users"])
+api_router.include_router(
+    post_router, tags=["posts"])
