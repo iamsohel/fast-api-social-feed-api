@@ -17,7 +17,7 @@ class Item(ItemBase):
     owner_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class UserBase(BaseModel):
@@ -28,14 +28,21 @@ class UserCreate(UserBase):
     password: str
 
 
+class UserUpdate(UserBase):
+    pass
+
+
 class UserResponse(UserBase):
     id: int
     is_active: bool
     full_name: Union[str, None] = None
-    items: List[Item] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+
+class UserWithPost(UserResponse):
+    posts: List[Item] = []
 
 
 class Token(BaseModel):
@@ -45,3 +52,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Union[str, None] = None
+
+
+class PostWithUser(ItemBase):
+    owner: UserResponse

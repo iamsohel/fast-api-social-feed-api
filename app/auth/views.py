@@ -8,8 +8,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 
 from .service import create_user, get_user_by_email, get_users, get_user, get_password_hash, get_posts, \
-    authenticate_user, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_active_user, create_user_post
-from .schemas import UserResponse, UserCreate, Token, Item, ItemCreate
+    authenticate_user, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_active_user, create_user_post, \
+    update_user, delete_user
+from .schemas import UserResponse, UserCreate, Token, Item, ItemCreate, UserUpdate, PostWithUser, UserWithPost
 from app.database.core import get_db
 
 auth_router: APIRouter = APIRouter()
@@ -73,13 +74,14 @@ def create_users(user: UserCreate, db: Session = Depends(get_db)):
     return create_user(db=db, user=user)
 
 
-@user_router.get("/users/", response_model=List[UserResponse])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: UserResponse = Depends(get_current_active_user)):
+@user_router.get("/users/", response_model=List[UserWithPost])
+def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = get_users(db, skip=skip, limit=limit)
+    print(users)
     return users
 
 
-@user_router.get("/users/{user_id}", response_model=UserResponse)
+@user_router.get("/users/{user_id}", response_model=UserWithPost)
 def read_user(user_id: int, db: Session = Depends(get_db)):
     db_user = get_user(db, user_id=user_id)
     if db_user is None:
@@ -88,24 +90,14 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @user_router.put("/users/{user_id}", response_model=UserResponse)
-def update_user(user_id: int, user: UserResponseUpdate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.id == user_id).first()
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    for key, value in user.dict().items():
-        setattr(db_user, key, value)
-    db.commit()
-    db.refresh(db_user)
+def update_users(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
+    db_user = update_user(db, user, user_id=user_id)
     return db_user
 
 
-@user_router.delete("/users/{user_id}", response_model=schemas.User)
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.id == user_id).first()
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    db.delete(db_user)
-    db.commit()
+@user_router.delete("/users/{user_id}", response_model=UserResponse)
+def delete_users(user_id: int, db: Session = Depends(get_db)):
+    db_user = delete_user(db, user_id=user_id)
     return db_user
 
 
@@ -121,7 +113,7 @@ def create_item_for_user(
     return create_user_post(db=db, item=item, user_id=user_id)
 
 
-@post_router.get("/posts/", response_model=list[Item])
+@post_router.get("/posts/", response_model=List[PostWithUser])
 def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     items = get_posts(db, skip=skip, limit=limit)
     return items

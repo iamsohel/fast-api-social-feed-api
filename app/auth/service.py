@@ -1,13 +1,13 @@
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 from typing import Union
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from .schemas import UserResponse, UserCreate, TokenData, ItemCreate
+from .schemas import UserResponse, UserCreate, TokenData, ItemCreate, UserUpdate
 from .models import User, Post
 from app.database.core import get_db
 
@@ -32,7 +32,7 @@ def get_user_by_email(db: Session, email: str):
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(User).offset(skip).limit(limit).all()
+    return db.query(User).options(joinedload(User.posts)).offset(skip).limit(limit).all()
 
 
 def create_user(db: Session, user: UserCreate):
@@ -44,8 +44,28 @@ def create_user(db: Session, user: UserCreate):
     return db_user
 
 
+def update_user(db: Session, user: UserUpdate, user_id: int):
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    for key, value in user.dict().items():
+        setattr(db_user, key, value)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+def delete_user(db: Session, user_id: int):
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    db.delete(db_user)
+    db.commit()
+    return db_user
+
+
 def get_posts(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Post).offset(skip).limit(limit).all()
+    return db.query(Post).options(joinedload(Post.owner)).offset(skip).limit(limit).all()
 
 
 def create_user_post(db: Session, item: ItemCreate, user_id: int):

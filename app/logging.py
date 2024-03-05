@@ -1,6 +1,6 @@
 import logging
 
-from app.config import LOG_LEVEL
+from app.config import settings
 from app.enums import DispatchEnum
 
 
@@ -15,7 +15,7 @@ class LogLevels(DispatchEnum):
 
 
 def configure_logging():
-    log_level = str(LOG_LEVEL).upper()  # cast to string
+    log_level = str(settings.LOG_LEVEL).upper()  # cast to string
     log_levels = list(LogLevels)
 
     if log_level not in log_levels:
