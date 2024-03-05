@@ -8,7 +8,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from .schemas import UserResponse, UserCreate, TokenData, ItemCreate
-from .models import User, Item
+from .models import User, Post
 from app.database.core import get_db
 
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7werqwe3"
@@ -44,12 +44,12 @@ def create_user(db: Session, user: UserCreate):
     return db_user
 
 
-def get_items(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Item).offset(skip).limit(limit).all()
+def get_posts(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(Post).offset(skip).limit(limit).all()
 
 
-def create_user_item(db: Session, item: ItemCreate, user_id: int):
-    db_item = Item(**item.dict(), owner_id=user_id)
+def create_user_post(db: Session, item: ItemCreate, user_id: int):
+    db_item = Post(**item.dict(), owner_id=user_id)
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
