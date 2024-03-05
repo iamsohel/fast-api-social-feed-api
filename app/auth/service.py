@@ -11,6 +11,17 @@ from .schemas import UserResponse, UserCreate, TokenData, ItemCreate
 from .models import User, Item
 from app.database.core import get_db
 
+SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7werqwe3"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 300
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+auth_router: APIRouter = APIRouter(tags=["auth"])
+
 
 def get_user(db: Session, user_id: int):
     return db.query(User).filter(User.id == user_id).first()
@@ -43,25 +54,6 @@ def create_user_item(db: Session, item: ItemCreate, user_id: int):
     db.commit()
     db.refresh(db_item)
     return db_item
-
-
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 5
-
-
-fake_users_db = {
-    "full_name": "John Doe",
-    "email": "johndoe@example.com",
-    "password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-}
-
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-auth_router: APIRouter = APIRouter(tags=["auth"])
 
 
 def verify_password(plain_password, password):
