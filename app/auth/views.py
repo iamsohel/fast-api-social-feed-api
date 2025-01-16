@@ -77,7 +77,6 @@ def create_users(user: UserCreate, db: Session = Depends(get_db)):
 @user_router.get("/users/", response_model=List[UserWithPost])
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = get_users(db, skip=skip, limit=limit)
-    print(users)
     return users
 
 
